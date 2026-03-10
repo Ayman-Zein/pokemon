@@ -25,70 +25,171 @@ A responsive Pokémon browser built with React, TypeScript, Vite, TailwindCSS, a
 - **Node.js** v18 or higher
 - **npm** v9 or higher
 
----
-
 ### Installation
 
 ```bash
-# 1. Clone the repository
 git clone <your-repo-url>
 cd pokemon
-
-# 2. Install dependencies
 npm install
 ```
 
 ---
 
-### Run (Live API)
+## Choosing Your API Source
 
-Uses the real [PokéAPI](https://pokeapi.co) — requires an internet connection.
+The app supports two API modes controlled by `.env.development`.
+
+### Option A — Public PokéAPI (default)
+
+Uses the real [pokeapi.co](https://pokeapi.co) — requires an internet connection.
+
+**`.env.development`**
+
+```env
+VITE_API_URL=https://pokeapi.co/api/v2
+# VITE_LOCAL_ENDPOINT=http://localhost:3001/api/v2
+```
+
+> Make sure `VITE_LOCAL_ENDPOINT` is commented out. `VITE_API_URL` will be used.
+
+Start the app:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open [http://localhost:5173](http://localhost:5173).
 
 ---
 
-### Run (Mock Server — Offline)
+### Option B — Local Mock Server (offline)
 
-The project includes a zero-dependency Node.js mock server that simulates the PokéAPI endpoints locally with 60 pre-seeded Pokémon.
+Uses a zero-dependency Node.js server bundled in the `server/` folder.
+Includes 60 pre-seeded Pokémon — no internet required.
 
-**Step 1 — Start the mock API server** (in a separate terminal):
+**Step 1 — Enable the local endpoint in `.env.development`:**
+
+```env
+VITE_API_URL=https://pokeapi.co/api/v2
+VITE_LOCAL_ENDPOINT=http://localhost:3001/api/v2
+```
+
+> When `VITE_LOCAL_ENDPOINT` is set, it takes priority over `VITE_API_URL`.
+
+**Step 2 — Start the mock server** (Terminal 1):
 
 ```bash
 npm run server
 ```
 
-The mock server starts at `http://localhost:3001`.
+Output:
 
-Available mock endpoints:
-
-| Method | Endpoint                            | Description                  |
-| ------ | ----------------------------------- | ---------------------------- |
-| `GET`  | `/api/v2/pokemon?limit=10&offset=0` | Paginated Pokémon list       |
-| `GET`  | `/api/v2/pokemon/:id`               | Pokémon detail by ID or name |
-
-**Step 2 — Point the app at the mock server:**
-
-Edit `.env.development` and uncomment the mock URL:
-
-```env
-VITE_API_URL=http://localhost:3001/api/v2
+```
+Mock PokéAPI running at http://localhost:3001/api/v2/pokemon
 ```
 
-Then update `src/api/pokemonApi.ts` to read from the env variable:
-
-```ts
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "https://pokeapi.co/api/v2",
-});
-```
-
-**Step 3 — Start Vite** (in another terminal):
+**Step 3 — Start Vite** (Terminal 2):
 
 ```bash
 npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173).
+
+#### Mock server endpoints
+
+| Method | Endpoint                            | Description                                   |
+| ------ | ----------------------------------- | --------------------------------------------- |
+| `GET`  | `/api/v2/pokemon?limit=10&offset=0` | Paginated list (`limit` / `offset` supported) |
+| `GET`  | `/api/v2/pokemon/:id`               | Detail by numeric ID or name                  |
+
+---
+
+## Switching Between Modes — Quick Reference
+
+| What you want         | `.env.development`                |
+| --------------------- | --------------------------------- |
+| Use live PokéAPI      | Comment out `VITE_LOCAL_ENDPOINT` |
+| Use local mock server | Uncomment `VITE_LOCAL_ENDPOINT`   |
+
+After changing `.env.development`, restart Vite (`Ctrl+C` → `npm run dev`) for the change to take effect.
+
+---
+
+## Project Structure
+
+```
+src/
+├── api/
+│   └── pokemonApi.ts              # Axios instance + API functions
+├── components/
+│   ├── ErrorState.tsx              # Error message + retry button
+│   ├── LoadMoreButton.tsx          # Load more / loading spinner
+│   ├── PaginationControls.tsx      # Page numbers, prev/next
+│   ├── PokemonCard.tsx             # Single Pokémon card
+│   ├── PokemonGrid.tsx             # Responsive card grid
+│   └── SkeletonCard.tsx            # Animated loading placeholder
+├── features/pokemon/
+│   ├── hooks/
+│   │   ├── usePokemonDetails.ts    # Fetch single Pokémon
+│   │   ├── usePokemonList.ts       # Paginated list query
+│   │   └── usePokemonLoadMore.ts   # Infinite scroll query
+│   └── pages/
+│       ├── PokemonDetailPage.tsx       # /pokemon/:id
+│       ├── PokemonLoadMorePage.tsx     # /load-more
+│       └── PokemonPaginationPage.tsx   # /pagination
+├── layouts/
+│   └── MainLayout.tsx             # Header, nav, footer
+├── router/
+│   └── router.tsx                 # React Router config
+├── types/
+│   └── pokemon.ts                 # TypeScript interfaces
+└── utils/
+    └── formatters.ts              # Helpers (capitalize, type colors, etc.)
+
+server/
+├── data.js                        # 60 seeded Pokémon records
+└── index.js                       # Node.js HTTP mock server (no dependencies)
+```
+
+---
+
+## Routes
+
+| Path           | Description                                  |
+| -------------- | -------------------------------------------- |
+| `/`            | Redirects to `/pagination`                   |
+| `/pagination`  | Grid with page controls (10 per page)        |
+| `/load-more`   | Grid with Load More button (infinite scroll) |
+| `/pokemon/:id` | Full Pokémon detail page                     |
+
+---
+
+## Available Scripts
+
+```bash
+npm run dev        # Start Vite dev server
+npm run server     # Start local mock API server on port 3001
+npm run build      # TypeScript check + production build
+npm run preview    # Preview production build locally
+npm run lint       # Run ESLint
+```
+
+---
+
+## Deployment (Vercel)
+
+A `vercel.json` is included for client-side routing support:
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+}
+```
+
+Deploy via CLI:
+
+```bash
+npm run build
+npx vercel --prod
 ```
