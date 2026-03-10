@@ -15,7 +15,7 @@ export function MainLayout() {
             <NavLink
               to="/pagination"
               className={({ isActive }) =>
-                `rounded-full border px-5 py-2 text-sm font-medium transition-colors ${
+                `rounded-lg border px-5 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? "border-gray-900 bg-gray-900 text-white"
                     : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
@@ -27,7 +27,7 @@ export function MainLayout() {
             <NavLink
               to="/load-more"
               className={({ isActive }) =>
-                `rounded-full border px-5 py-2 text-sm font-medium transition-colors ${
+                `rounded-lg border px-5 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? "border-gray-900 bg-gray-900 text-white"
                     : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
